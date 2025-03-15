@@ -237,7 +237,7 @@ function render(timestamp) {
     var radius = 30.0;
     eye = vec3(
         radius * Math.cos(cameraAngle),
-        1,
+        3,
         radius * Math.sin(cameraAngle)
     );
     MS = []; // Initialize modeling matrix stack
@@ -283,70 +283,112 @@ function render(timestamp) {
 		gPop();
 	gPop();
  
-        
+    // Flying thin
+
+    gPush();
+        gTranslate(0, 0, 3);
+        // torso
+        gPush(); 
+        {
+            setColor(vec4(0.0,1.0,0.0,1.0));
+            gScale(1, 0.5, 0.5);
+            drawCube();
+        }
+        gPop();
+
+        //tail
+        gPush();
+        {
+            setColor(vec4(0.0,1.0,0.0,1.0));
+            gTranslate(-2, 0, 0);
+            gScale(1, 0.3, 0.3);
+            drawCube();
+
+            gPush();
+            {
+                gTranslate(-2,0,0);
+                gScale(1,0.7,0.7);
+                drawCube();
+            }
+            gPop();
+        }
+        gPop();
+
+        //head
+        gPush();
+        {
+            setColor(vec4(0.0,1.0,0.0,1.0));
+            gTranslate(1.7,0,0);
+            gScale(0.7,0.4,0.4);
+            drawCube();
+        }
+
          
 
-    // Spiderman
-    gPush();
-        gTranslate(0,2.5,0);
-        // Torso
-        gPush();
-        {
-            setColor(vec4(1.0,0.0,0.0,1.0));
-            gScale(1, 1.5, 0.5);
-            drawCube();
-        }
-        gPop();
+    // // Spiderman
+    // gPush();
+    //     gTranslate(0,0.6,0);
+        
+        
+    //     // Torso
+    //     gPush();
+    //     {
+    //         setColor(vec4(1.0,0.0,0.0,1.0));
+    //         gScale(1, 1.5, 0.5);
+    //         drawCube();
+    //     }
+    //     gPop();
 
-        // Head
-        gPush();
-        {
-            setColor(vec4(1.0,0.0,0.0,1.0));
-            gTranslate(0,2.5,0);
-            gScale(1, 1, 1);
-            drawCube();
-        }
-        gPop();
+    //     // Head
+    //     gPush();
+    //     {
+    //         setColor(vec4(1.0,0.0,0.0,1.0));
+    //         gTranslate(0,2.5,0);
+    //         gScale(1, 1, 1);
+    //         drawCube();
+    //     }
+    //     gPop();
 
-        // Right Arm
-        gPush();
-        {
-            setColor(vec4(1.0,0.0,0.0,1.0));
-            gTranslate(-1.5, 0, 0);
-            gScale(0.5, 1.5, 0.5);
-            drawCube();
-        }
-        gPop();
+    //     // Right Arm
+    //     gPush();
+    //     {
+    //         setColor(vec4(1.0,0.0,0.0,1.0));
+    //         gTranslate(-2, 0.15, 0);
+    //         gRotate(-10, 0, 0, 1);
+    //         gScale(0.5, 1.5, 0.5);
+    //         drawCube();
+    //     }
+    //     gPop();
 
-        // Left Arm
-        gPush();
-        {
-            setColor(vec4(1.0,0.0,0.0,1.0));
-            gTranslate(1.5, 0, 0);
-            gScale(0.5, 1.5, 0.5);
-            drawCube();
-        }
-        gPop();
+    //     // Left Arm
+    //     gPush();
+    //     {
+    //         setColor(vec4(1.0,0.0,0.0,1.0));
+    //         gTranslate(1.5, 0, 0);
+    //         gScale(0.5, 1.5, 0.5);
+    //         drawCube();
+    //     }
+    //     gPop();
 
-        // Right Leg
-        gPush();
-        {
-            setColor(vec4(1.0,0.0,0.0,1.0));
-            gTranslate(-0.5, -3, 0);
-            gScale(0.5, 1.5, 0.5);
-            drawCube();
-        }
-        gPop();        
+    //     // Right Leg
+    //     gPush();
+    //     {
+    //         setColor(vec4(1.0,0.0,0.0,1.0));
+    //         gTranslate(-0.5, -3, 0);
+    //         gScale(0.5, 1.5, 0.5);
+    //         drawCube();
+    //     }
+    //     gPop();        
 
-        // Left Leg
-        gPush();
-        {
-            setColor(vec4(1.0,0.0,0.0,1.0));
-            gTranslate(0.5, -3, 0);
-            gScale(0.5, 1.5, 0.5);
-            drawCube();
-        }
-        gPop();            
+    //     // Left Leg
+    //     gPush();
+    //     {
+    //         setColor(vec4(1.0,0.0,0.0,1.0));
+    //         gTranslate(0.5, -3, 0);
+    //         gScale(0.5, 1.5, 0.5);
+    //         drawCube();
+    //     }
+    //     gPop();            
 
     gPop();
     if( animFlag )
