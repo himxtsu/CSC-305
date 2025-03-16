@@ -64,6 +64,7 @@ var cylinderPosition = [1.1,0,0];
 var coneRotation = [0,0,0];
 var conePosition = [3,0,0];
 
+var legRotation = [0,0,0];
 // Setting the colour which is needed during illumination of a surface
 function setColor(c)
 {
@@ -285,7 +286,7 @@ function render(timestamp) {
 
     // Flying thing
     gPush();
-        gTranslate(0, 0, 7);
+        gTranslate(0, 0, 5);
         // torso
         gPush(); 
         {
@@ -295,17 +296,93 @@ function render(timestamp) {
         }
         gPop();
 
-        // legs (4x)
 
+        // legs (4x)
         gPush();
-        {
-            setColor(vec4(0.0,1.0,0.0,1.0));
-            gTranslate(0, -0.5, 0);
-            gScale(0.3, 1, 0.3);
-            drawCube();
-        }
+
+            const minAngleThigh = -10; // Minimum angle (backward)
+            const maxAngleThigh = 10;  // Maximum angle (forward)
+            const amplitude_thigh = (maxAngleThigh - minAngleThigh) / 2; // Amplitude of the sine wave
+            const offset_thigh = (maxAngleThigh + minAngleThigh) / 2;    // Offset to center the range
+            
+            const minAngleCalf = -50; // Minimum angle (backward)
+            const maxAngleCalf = -19;  // Maximum angle (forward)
+            const amplitude_calf = (maxAngleCalf - minAngleCalf) / 2; // Amplitude of the sine wave
+            const offset_calf = (maxAngleCalf + minAngleCalf) / 2;    // Offset to center the range
+
+            //gRotate(legRotation[1],0,1,0);
+            legRotation1[2] = amplitude_thigh * (Math.sin(timestamp * 0.0008)) + offset_thigh;
+            lower = (amplitude_calf) * (Math.sin(timestamp * 0.0008)) + (offset_calf);
+            gRotate(legRotation1[2],0,0,1);
+
+            // 1st leg
+
+            gPush();
+            {
+                setColor(vec4(0.0,1.0,0.0,1.0));
+                gTranslate(0.7, -0.05, 0.45);
+                gTranslate(0, -0.6, 0); //pivot
+                gScale(0.15, 0.3, 0.15);
+                drawCube(); //thigh
+                
+            }
+            gPop();
+
+            gPush();
+            {
+                setColor(vec4(0.0,1.0,0.0,1.0));
+                gTranslate(0.9, -0.6, 0.45);      
+                gRotate(lower,0,0,1);  
+                gTranslate(0, -0.7, 0);
+                gScale(0.15,0.3,0.15);         
+                drawCube(); // calf
+                
+                gPush();
+                {
+                    gTranslate(0.5, -1, 0);
+                    //gRotate(3,1,0,0);
+                    gScale(1.5,0.1,1);
+                    drawCube(); // foot
+                }
+                gPop();                
+            }
+            gPop();
+
+            // 2nd leg
+
+            gPush();
+            {
+                setColor(vec4(0.0,1.0,0.0,1.0));
+                gTranslate(-0.6, -0.05, 0.45);
+                gTranslate(0, -0.6, 0); //pivot
+                gScale(0.15, 0.3, 0.15);
+                drawCube(); //thigh
+                
+            }
+            gPop();
+
+            gPush();
+            {
+                setColor(vec4(0.0,1.0,0.0,1.0));
+                gTranslate(0.9, -0.6, 0.45);      
+                gRotate(lower,0,0,1);  
+                gTranslate(0, -0.7, 0);
+                gScale(0.15,0.3,0.15);         
+                drawCube(); // calf
+                
+                gPush();
+                {
+                    gTranslate(0.5, -1, 0);
+                    //gRotate(3,1,0,0);
+                    gScale(1.5,0.1,1);
+                    drawCube(); // foot
+                }
+                gPop();                
+            }
+            gPop();
+
         gPop();
-        
+
         //tail
         gPush();
         {
