@@ -237,7 +237,7 @@ function render(timestamp) {
     var radius = 30.0;
     eye = vec3(
         radius * Math.cos(cameraAngle),
-        3,
+        0,
         radius * Math.sin(cameraAngle)
     );
     MS = []; // Initialize modeling matrix stack
@@ -282,11 +282,10 @@ function render(timestamp) {
 		}
 		gPop();
 	gPop();
- 
-    // Flying thin
 
+    // Flying thing
     gPush();
-        gTranslate(0, 0, 3);
+        gTranslate(0, 0, 7);
         // torso
         gPush(); 
         {
@@ -296,6 +295,17 @@ function render(timestamp) {
         }
         gPop();
 
+        // legs (4x)
+
+        gPush();
+        {
+            setColor(vec4(0.0,1.0,0.0,1.0));
+            gTranslate(0, -0.5, 0);
+            gScale(0.3, 1, 0.3);
+            drawCube();
+        }
+        gPop();
+        
         //tail
         gPush();
         {
@@ -322,73 +332,113 @@ function render(timestamp) {
             gScale(0.7,0.4,0.4);
             drawCube();
         }
+        gPop();
 
-         
 
-    // // Spiderman
+
+    // Castle
+
     // gPush();
-    //     gTranslate(0,0.6,0);
-        
-        
-    //     // Torso
+    //     gTranslate(0, -1.9, 0);
+    //     // Middle of Castle
     //     gPush();
     //     {
     //         setColor(vec4(1.0,0.0,0.0,1.0));
-    //         gScale(1, 1.5, 0.5);
+    //         gScale(1.5, 2, 1.5);
     //         drawCube();
     //     }
     //     gPop();
 
-    //     // Head
+    //     // Towers (4x)
     //     gPush();
     //     {
     //         setColor(vec4(1.0,0.0,0.0,1.0));
-    //         gTranslate(0,2.5,0);
-    //         gScale(1, 1, 1);
-    //         drawCube();
+    //         gTranslate(2, 0.5, 1.75);
+    //         gRotate(90, 1,0,0);
+    //         gScale(1.5, 1.5, 5);
+    //         drawCylinder();
     //     }
     //     gPop();
 
-    //     // Right Arm
     //     gPush();
     //     {
     //         setColor(vec4(1.0,0.0,0.0,1.0));
-    //         gTranslate(-2, 0.15, 0);
-    //         gRotate(-10, 0, 0, 1);
-    //         gScale(0.5, 1.5, 0.5);
-    //         drawCube();
+    //         gTranslate(-2, 0.5, 1.75);
+    //         gRotate(90, 1,0,0);
+    //         gScale(1.5, 1.5, 5);
+    //         drawCylinder();
     //     }
     //     gPop();
 
-    //     // Left Arm
     //     gPush();
     //     {
     //         setColor(vec4(1.0,0.0,0.0,1.0));
-    //         gTranslate(1.5, 0, 0);
-    //         gScale(0.5, 1.5, 0.5);
-    //         drawCube();
-    //     }
-    //     gPop();
-
-    //     // Right Leg
-    //     gPush();
-    //     {
-    //         setColor(vec4(1.0,0.0,0.0,1.0));
-    //         gTranslate(-0.5, -3, 0);
-    //         gScale(0.5, 1.5, 0.5);
-    //         drawCube();
+    //         gTranslate(-2, 0.5, -1.75);
+    //         gRotate(90, 1,0,0);
+    //         gScale(1.5, 1.5, 5);
+    //         drawCylinder();
     //     }
     //     gPop();        
-
-    //     // Left Leg
+        
     //     gPush();
     //     {
     //         setColor(vec4(1.0,0.0,0.0,1.0));
-    //         gTranslate(0.5, -3, 0);
-    //         gScale(0.5, 1.5, 0.5);
-    //         drawCube();
+    //         gTranslate(2, 0.5, -1.75);
+    //         gRotate(90, 1,0,0);
+    //         gScale(1.5, 1.5, 5);
+    //         drawCylinder();
     //     }
-    //     gPop();            
+    //     gPop();
+
+    //     // Roof of Towers
+
+    //     gPush();
+    //     {
+    //         setColor(vec4(1.0,0.0,0.0,1.0));
+    //         gTranslate(2, 3.5, 1.75);
+    //         gRotate(-90, 1,0,0);
+    //         gScale(1, 1, 1.5);
+    //         drawCone();
+    //     }
+    //     gPop();
+
+    //     gPush();
+    //     {
+    //         setColor(vec4(1.0,0.0,0.0,1.0));
+    //         gTranslate(-2, 3.5, 1.75);
+    //         gRotate(-90, 1,0,0);
+    //         gScale(1, 1, 1.5);
+    //         drawCone();
+    //     }
+    //     gPop();
+
+    //     gPush();
+    //     {
+    //         setColor(vec4(1.0,0.0,0.0,1.0));
+    //         gTranslate(-2, 3.5, -1.75);
+    //         gRotate(-90, 1,0,0);
+    //         gScale(1, 1, 1.5);
+    //         drawCone();
+    //     }
+    //     gPop();
+
+    //     gPush();
+    //     {
+    //         setColor(vec4(1.0,0.0,0.0,1.0));
+    //         gTranslate(2, 3.5, -1.75);
+    //         gRotate(-90, 1,0,0);
+    //         gScale(1, 1, 1.5);
+    //         drawCone();
+    //     }
+    //     gPop();
+
+    // gPop();
+ 
+
+
+
+         
+        
 
     gPop();
     if( animFlag )
