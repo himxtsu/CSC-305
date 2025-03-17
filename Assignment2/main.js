@@ -36,7 +36,6 @@ var up = vec3(0.0, 1.0, 0.0);
 var cameraAngle = Math.PI/2;
 var rotationSpeed = -0.2;
 
-
 var RX = 0;
 var RY = 0;
 var RZ = 0;
@@ -49,9 +48,13 @@ var resetTimerFlag = true;
 var animFlag = false;
 var controller;
 
+
+
 // These are used to store the current state of objects.
 // In animation it is often useful to think of an object as having some DOF
-// Then the animation is simply evolving those DOF over time. You could very easily make a higher level object that stores these as Position, Rotation (and also Scale!)
+// Then the animation is simply evolving those DOF over time.
+var currentRotation = [0,0,0];
+
 var sphereRotation = [0,0,0];
 var spherePosition = [-4,0,0];
 
@@ -68,8 +71,42 @@ var legRotation = [0,0,0];
 var wingRotation = [0,0,0];
 var dragonRotation = [0,0,0];
 
-var textureArray = [];
 var useTextures = 1;
+
+//making a texture image procedurally
+//Let's start with a 1-D array
+var texSize = 8;
+var imageCheckerBoardData = new Array();
+
+// Now for each entry of the array make another array
+// 2D array now!
+for (var i =0; i<texSize; i++)
+	imageCheckerBoardData[i] = new Array();
+
+// Now for each entry in the 2D array make a 4 element array (RGBA! for colour)
+for (var i =0; i<texSize; i++)
+	for ( var j = 0; j < texSize; j++)
+		imageCheckerBoardData[i][j] = new Float32Array(4);
+
+// Now for each entry in the 2D array let's set the colour.
+// We could have just as easily done this in the previous loop actually
+for (var i =0; i<texSize; i++) 
+	for (var j=0; j<texSize; j++) {
+		var c = (i + j ) % 2;
+		imageCheckerBoardData[i][j] = [c, c, c, 1];
+}
+
+//Convert the image to uint8 rather than float.
+var imageCheckerboard = new Uint8Array(4*texSize*texSize);
+
+for (var i = 0; i < texSize; i++)
+	for (var j = 0; j < texSize; j++)
+	   for(var k =0; k<4; k++)
+			imageCheckerboard[4*texSize*i+4*j+k] = 255*imageCheckerBoardData[i][j][k];
+		
+// For this example we are going to store a few different textures here
+var textureArray = [] ;
+    
 // Setting the colour which is needed during illumination of a surface
 function setColor(c)
 {
@@ -84,7 +121,7 @@ function setColor(c)
     gl.uniform4fv( gl.getUniformLocation(program,
                                          "specularProduct"),flatten(specularProduct) );
     gl.uniform4fv( gl.getUniformLocation(program,
-                                         "lightPosition"),flatten(lightPosition) );
+                                         "lightPosition"),flatten(lightPosition2) );
     gl.uniform1f( gl.getUniformLocation(program, 
                                         "shininess"),materialShininess );
 }
@@ -251,12 +288,12 @@ function loadImageTexture(tex, image) {
 function initTexturesForExample() {
     textureArray.push({}) ;
     loadFileTexture(textureArray[textureArray.length-1],"box.png") ;
-
-    textureArray.push({}) ;
-    loadFileTexture(textureArray[textureArray.length-1],"scales.png") ;
     
+    textureArray.push({}) ;
+    loadImageTexture(textureArray[textureArray.length-1],imageCheckerboard) ;
 }
 
+// Changes which texture is active in the array of texture examples (see initTexturesForExample)
 function toggleTextures() {
     useTextures = (useTextures + 1) % 2
 	gl.uniform1i(gl.getUniformLocation(program, "useTextures"), useTextures);
@@ -307,7 +344,6 @@ window.onload = function init() {
     gl.uniform1f( gl.getUniformLocation(program, 
        "shininess"),materialShininess );
 
-
     document.getElementById("animToggleButton").onclick = function() {
         if( animFlag ) {
             animFlag = false;
@@ -315,18 +351,17 @@ window.onload = function init() {
         else {
             animFlag = true;
             resetTimerFlag = true;
-            cameraAngle = Math.PI/2;
             window.requestAnimFrame(render);
         }
-        //console.log(animFlag);
+        //console.log(animFlag);       
     };
 
     document.getElementById("textureToggleButton").onclick = function() {
         toggleTextures() ;
         window.requestAnimFrame(render);
-    };    
+    };
 
-    // Helper function just for this example to load the set of textures
+	// Helper function just for this example to load the set of textures
     initTexturesForExample() ;
 
     waitForTextures(textureArray);
@@ -383,19 +418,19 @@ function drawCone() {
 }
 
 // Post multiples the modelview matrix with a translation matrix
-// and replaces the modeling matrix with the result, x, y, and z are the translation amounts for each axis
+// and replaces the modeling matrix with the result
 function gTranslate(x,y,z) {
     modelMatrix = mult(modelMatrix,translate([x,y,z]));
 }
 
 // Post multiples the modelview matrix with a rotation matrix
-// and replaces the modeling matrix with the result, theta is the rotation amount, x, y, z are the components of an axis vector (angle, axis rotations!)
+// and replaces the modeling matrix with the result
 function gRotate(theta,x,y,z) {
     modelMatrix = mult(modelMatrix,rotate(theta,[x,y,z]));
 }
 
 // Post multiples the modelview matrix with a scaling matrix
-// and replaces the modeling matrix with the result, x, y, and z are the scale amounts for each axis
+// and replaces the modeling matrix with the result
 function gScale(sx,sy,sz) {
     modelMatrix = mult(modelMatrix,scale(sx,sy,sz));
 }
@@ -411,13 +446,10 @@ function gPush() {
 }
 
 
-
-
-
 function render(timestamp) {
     
     gl.clear( gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
-
+    
     if (animFlag) {
         cameraAngle += rotationSpeed * dt;
         cameraAngle %= (2 * Math.PI);
@@ -429,53 +461,71 @@ function render(timestamp) {
         3,
         radius * Math.sin(cameraAngle)
     );
+    // eye = vec3(0,-10,10);
     MS = []; // Initialize modeling matrix stack
 	
 	// initialize the modeling matrix to identity
     modelMatrix = mat4();
     
     // set the camera matrix
-    viewMatrix = lookAt(eye, at , up);
+    viewMatrix = lookAt(eye, at, up);
    
     // set the projection matrix
     projectionMatrix = ortho(left, right, bottom, ytop, near, far);
-    
+
     
     // set all the matrices
     setAllMatrices();
     
 	if( animFlag )
     {
-		// dt is the change in time or delta time from the last frame to this one
-		// in animation typically we have some property or degree of freedom we want to evolve over time
-		// For example imagine x is the position of a thing.
-		// To get the new position of a thing we do something called integration
-		// the simpelst form of this looks like:
-		// x_new = x + v*dt
-		// That is, the new position equals the current position + the rate of of change of that position (often a velocity or speed) times the change in time
-		// We can do this with angles or positions, the whole x,y,z position, or just one dimension. It is up to us!
-		dt = (timestamp - prevTime) / 2000;
-		prevTime = timestamp;
+        // dt is the change in time or delta time from the last frame to this one
+        // in animation typically we have some property or degree of freedom we want to evolve over time
+        // For example imagine x is the position of a thing.
+        // To get the new position of a thing we do something called integration
+        // the simpelst form of this looks like:
+        // x_new = x + v*dt
+        // That is, the new position equals the current position + the rate of of change of that position (often a velocity or speed) times the change in time
+        // We can do this with angles or positions, the whole x,y,z position, or just one dimension. It is up to us!
+        dt = (timestamp - prevTime) / 1000.0;
+        prevTime = timestamp;
+    }
 
-        gl.activeTexture(gl.TEXTURE0);
-        if (useTextures % 2 == 1) 
-        {
-            //Binds a texture to a target. Target is then used in future calls.
-            //Targets:
-                // TEXTURE_2D           - A two-dimensional texture.
-                // TEXTURE_CUBE_MAP     - A cube-mapped texture.
-                // TEXTURE_3D           - A three-dimensional texture.
-                // TEXTURE_2D_ARRAY     - A two-dimensional array texture.
-            gl.bindTexture(gl.TEXTURE_2D, textureArray[0].textureWebGL);
-            gl.uniform1i(gl.getUniformLocation(program, "texture1"), 0);
-        }
-        else
-        {
-            gl.bindTexture(gl.TEXTURE_2D, textureArray[1].textureWebGL);
-            gl.uniform1i(gl.getUniformLocation(program, "texture2"), 0);
-        }
+	// // dt is the change in time or delta time from the last frame to this one
+	// // in animation typically we have some property or degree of freedom we want to evolve over time
+	// // For example imagine x is the position of a thing.
+	// // To get the new position of a thing we do something called integration
+	// // the simpelst form of this looks like:
+	// // x_new = x + v*dt
+	// // That is the new position equals the current position + the rate of of change of that position (often a velocity or speed), times the change in time
+	// // We can do this with angles or positions, the whole x,y,z position or just one dimension. It is up to us!
+	// dt = (timestamp - prevTime) / 2000.0;
+	// prevTime = timestamp;
+	
+	// We need to bind our textures, ensure the right one is active before we draw
+	//Activate a specified "texture unit".
+    //Texture units are of form gl.TEXTUREi | where i is an integer.
+	gl.activeTexture(gl.TEXTURE0);
+	if (useTextures % 2 == 1) 
+	{
+		//Binds a texture to a target. Target is then used in future calls.
+		//Targets:
+			// TEXTURE_2D           - A two-dimensional texture.
+			// TEXTURE_CUBE_MAP     - A cube-mapped texture.
+			// TEXTURE_3D           - A three-dimensional texture.
+			// TEXTURE_2D_ARRAY     - A two-dimensional array texture.
+		gl.bindTexture(gl.TEXTURE_2D, textureArray[0].textureWebGL);
+		gl.uniform1i(gl.getUniformLocation(program, "texture1"), 0);
+	}
+    else
+	{
+		gl.bindTexture(gl.TEXTURE_2D, textureArray[1].textureWebGL);
+		gl.uniform1i(gl.getUniformLocation(program, "texture2"), 0);
 	}
 	
+	// Now let's draw a shape animated!
+	// You may be wondering where the texture coordinates are!
+	// We've modified the object.js to add in support for this attribute array!
 	// Platform
 	gPush();
 
@@ -959,10 +1009,7 @@ function render(timestamp) {
     gPop();
 
 
-         
-        
-
-    gPop();
-    if( animFlag )
+	if( animFlag )
         window.requestAnimFrame(render);
+
 }
