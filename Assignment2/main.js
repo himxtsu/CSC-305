@@ -291,6 +291,18 @@ function initTexturesForExample() {
     
     textureArray.push({}) ;
     loadImageTexture(textureArray[textureArray.length-1],imageCheckerboard) ;
+
+    textureArray.push({}) ;
+    loadFileTexture(textureArray[textureArray.length-1],"scales.png") ;
+
+    textureArray.push({}) ;
+    loadFileTexture(textureArray[textureArray.length-1],"bricks.jpg") ;
+
+    textureArray.push({}) ;
+    loadFileTexture(textureArray[textureArray.length-1],"wood.jpg") ;
+
+    textureArray.push({}) ;
+    loadFileTexture(textureArray[textureArray.length-1],"grass.png") ;
 }
 
 // Changes which texture is active in the array of texture examples (see initTexturesForExample)
@@ -528,6 +540,8 @@ function render(timestamp) {
 	// We've modified the object.js to add in support for this attribute array!
 	// Platform
 	gPush();
+        gl.bindTexture(gl.TEXTURE_2D, textureArray[5].textureWebGL);
+        gl.uniform1i(gl.getUniformLocation(program, "texture1"), 0);
 
 		gTranslate(cubePosition[0],-4,cubePosition[2]);
 		gPush();
@@ -543,7 +557,9 @@ function render(timestamp) {
 
     // Flying thing
     gPush();
-        
+        gl.bindTexture(gl.TEXTURE_2D, textureArray[2].textureWebGL);
+        gl.uniform1i(gl.getUniformLocation(program, "texture1"), 0);
+
         dragonRotation[1] = dragonRotation[1] + 35 * dt
         gRotate(dragonRotation[1], 0, 1, 0);
         gTranslate(0, 2, 8);
@@ -854,6 +870,9 @@ function render(timestamp) {
    // Castle
 
     gPush();
+        gl.bindTexture(gl.TEXTURE_2D, textureArray[3].textureWebGL);
+        gl.uniform1i(gl.getUniformLocation(program, "texture1"), 0);
+        
         gTranslate(0, -1.9, 0);
         // Middle of Castle
         gPush();
@@ -956,6 +975,9 @@ function render(timestamp) {
 
         gPush(); // logs
         {
+            gl.bindTexture(gl.TEXTURE_2D, textureArray[4].textureWebGL);
+            gl.uniform1i(gl.getUniformLocation(program, "texture1"), 0);
+
             setColor(vec4(0.0,0.0,1.0,1.0));
             gTranslate(1,-3.6,3);
             gRotate(-90, 1, 0, 0);
