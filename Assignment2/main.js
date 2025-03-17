@@ -67,6 +67,9 @@ var conePosition = [3,0,0];
 var legRotation = [0,0,0];
 var wingRotation = [0,0,0];
 var dragonRotation = [0,0,0];
+
+var textureArray = [];
+var useTextures = 1;
 // Setting the colour which is needed during illumination of a surface
 function setColor(c)
 {
@@ -84,6 +87,179 @@ function setColor(c)
                                          "lightPosition"),flatten(lightPosition) );
     gl.uniform1f( gl.getUniformLocation(program, 
                                         "shininess"),materialShininess );
+}
+
+// We are going to asynchronously load actual image files this will check if that call if an async call is complete
+// You can use this for debugging
+function isLoaded(im) {
+    if (im.complete) {
+        console.log("loaded") ;
+        return true ;
+    }
+    else {
+        console.log("still not loaded!!!!") ;
+        return false ;
+    }
+}
+
+// Helper function to load an actual file as a texture
+// NOTE: The image is going to be loaded asyncronously (lazy) which could be
+// after the program continues to the next functions. OUCH!
+function loadFileTexture(tex, filename)
+{
+	//create and initalize a webgl texture object.
+    tex.textureWebGL  = gl.createTexture();
+    tex.image = new Image();
+    tex.image.src = filename ;
+    tex.isTextureReady = false ;
+    tex.image.onload = function() { handleTextureLoaded(tex); }
+}
+
+// Once the above image file loaded with loadFileTexture is actually loaded,
+// this funcion is the onload handler and will be called.
+function handleTextureLoaded(textureObj) {
+	//Binds a texture to a target. Target is then used in future calls.
+		//Targets:
+			// TEXTURE_2D           - A two-dimensional texture.
+			// TEXTURE_CUBE_MAP     - A cube-mapped texture.
+			// TEXTURE_3D           - A three-dimensional texture.
+			// TEXTURE_2D_ARRAY     - A two-dimensional array texture.
+    gl.bindTexture(gl.TEXTURE_2D, textureObj.textureWebGL);
+	gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, true); // otherwise the image would be flipped upsdide down
+	
+	//texImage2D(Target, internalformat, width, height, border, format, type, ImageData source)
+    //Internal Format: What type of format is the data in? We are using a vec4 with format [r,g,b,a].
+        //Other formats: RGB, LUMINANCE_ALPHA, LUMINANCE, ALPHA
+    //Border: Width of image border. Adds padding.
+    //Format: Similar to Internal format. But this responds to the texel data, or what kind of data the shader gets.
+    //Type: Data type of the texel data
+    gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, textureObj.image);
+	
+	//Set texture parameters.
+    //texParameteri(GLenum target, GLenum pname, GLint param);
+    //pname: Texture parameter to set.
+        // TEXTURE_MAG_FILTER : Texture Magnification Filter. What happens when you zoom into the texture
+        // TEXTURE_MIN_FILTER : Texture minification filter. What happens when you zoom out of the texture
+    //param: What to set it to.
+        //For the Mag Filter: gl.LINEAR (default value), gl.NEAREST
+        //For the Min Filter: 
+            //gl.LINEAR, gl.NEAREST, gl.NEAREST_MIPMAP_NEAREST, gl.LINEAR_MIPMAP_NEAREST, gl.NEAREST_MIPMAP_LINEAR (default value), gl.LINEAR_MIPMAP_LINEAR.
+    //Full list at: https://developer.mozilla.org/en-US/docs/Web/API/WebGLRenderingContext/texParameter
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST_MIPMAP_NEAREST);
+	
+	//Generates a set of mipmaps for the texture object.
+        /*
+            Mipmaps are used to create distance with objects. 
+        A higher-resolution mipmap is used for objects that are closer, 
+        and a lower-resolution mipmap is used for objects that are farther away. 
+        It starts with the resolution of the texture image and halves the resolution 
+        until a 1x1 dimension texture image is created.
+        */
+    gl.generateMipmap(gl.TEXTURE_2D);
+	
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE); //Prevents s-coordinate wrapping (repeating)
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE); //Prevents t-coordinate wrapping (repeating)
+    gl.bindTexture(gl.TEXTURE_2D, null);
+    console.log(textureObj.image.src) ;
+    
+    textureObj.isTextureReady = true ;
+}
+
+// Takes an array of textures and calls render if the textures are created/loaded
+// This is useful if you have a bunch of textures, to ensure that those files are
+// actually loaded from disk you can wait and delay the render function call
+// Notice how we call this at the end of init instead of just calling requestAnimFrame like before
+function waitForTextures(texs) {
+    setTimeout(
+		function() {
+			   var n = 0 ;
+               for ( var i = 0 ; i < texs.length ; i++ )
+               {
+                    console.log(texs[i].image.src) ;
+                    n = n+texs[i].isTextureReady ;
+               }
+               wtime = (new Date()).getTime() ;
+               if( n != texs.length )
+               {
+               		console.log(wtime + " not ready yet") ;
+               		waitForTextures(texs) ;
+               }
+               else
+               {
+               		console.log("ready to render") ;
+					render(0);
+               }
+		},
+	5) ;
+}
+
+// This will use an array of existing image data to load and set parameters for a texture
+// We'll use this function for procedural textures, since there is no async loading to deal with
+function loadImageTexture(tex, image) {
+	//create and initalize a webgl texture object.
+    tex.textureWebGL  = gl.createTexture();
+    tex.image = new Image();
+
+	//Binds a texture to a target. Target is then used in future calls.
+		//Targets:
+			// TEXTURE_2D           - A two-dimensional texture.
+			// TEXTURE_CUBE_MAP     - A cube-mapped texture.
+			// TEXTURE_3D           - A three-dimensional texture.
+			// TEXTURE_2D_ARRAY     - A two-dimensional array texture.
+    gl.bindTexture(gl.TEXTURE_2D, tex.textureWebGL);
+
+	//texImage2D(Target, internalformat, width, height, border, format, type, ImageData source)
+    //Internal Format: What type of format is the data in? We are using a vec4 with format [r,g,b,a].
+        //Other formats: RGB, LUMINANCE_ALPHA, LUMINANCE, ALPHA
+    //Border: Width of image border. Adds padding.
+    //Format: Similar to Internal format. But this responds to the texel data, or what kind of data the shader gets.
+    //Type: Data type of the texel data
+    gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, texSize, texSize, 0, gl.RGBA, gl.UNSIGNED_BYTE, image);
+	
+	//Generates a set of mipmaps for the texture object.
+        /*
+            Mipmaps are used to create distance with objects. 
+        A higher-resolution mipmap is used for objects that are closer, 
+        and a lower-resolution mipmap is used for objects that are farther away. 
+        It starts with the resolution of the texture image and halves the resolution 
+        until a 1x1 dimension texture image is created.
+        */
+    gl.generateMipmap(gl.TEXTURE_2D);
+	
+	//Set texture parameters.
+    //texParameteri(GLenum target, GLenum pname, GLint param);
+    //pname: Texture parameter to set.
+        // TEXTURE_MAG_FILTER : Texture Magnification Filter. What happens when you zoom into the texture
+        // TEXTURE_MIN_FILTER : Texture minification filter. What happens when you zoom out of the texture
+    //param: What to set it to.
+        //For the Mag Filter: gl.LINEAR (default value), gl.NEAREST
+        //For the Min Filter: 
+            //gl.LINEAR, gl.NEAREST, gl.NEAREST_MIPMAP_NEAREST, gl.LINEAR_MIPMAP_NEAREST, gl.NEAREST_MIPMAP_LINEAR (default value), gl.LINEAR_MIPMAP_LINEAR.
+    //Full list at: https://developer.mozilla.org/en-US/docs/Web/API/WebGLRenderingContext/texParameter
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST_MIPMAP_LINEAR);
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
+	
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE); //Prevents s-coordinate wrapping (repeating)
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE); //Prevents t-coordinate wrapping (repeating)
+    gl.bindTexture(gl.TEXTURE_2D, null);
+
+    tex.isTextureReady = true;
+}
+
+// This just calls the appropriate texture loads for this example adn puts the textures in an array
+function initTexturesForExample() {
+    textureArray.push({}) ;
+    loadFileTexture(textureArray[textureArray.length-1],"box.png") ;
+
+    textureArray.push({}) ;
+    loadFileTexture(textureArray[textureArray.length-1],"scales.png") ;
+    
+}
+
+function toggleTextures() {
+    useTextures = (useTextures + 1) % 2
+	gl.uniform1i(gl.getUniformLocation(program, "useTextures"), useTextures);
 }
 
 window.onload = function init() {
@@ -144,6 +320,16 @@ window.onload = function init() {
         }
         //console.log(animFlag);
     };
+
+    document.getElementById("textureToggleButton").onclick = function() {
+        toggleTextures() ;
+        window.requestAnimFrame(render);
+    };    
+
+    // Helper function just for this example to load the set of textures
+    initTexturesForExample() ;
+
+    waitForTextures(textureArray);
 
     render(0);
 }
@@ -270,10 +456,29 @@ function render(timestamp) {
 		// We can do this with angles or positions, the whole x,y,z position, or just one dimension. It is up to us!
 		dt = (timestamp - prevTime) / 2000;
 		prevTime = timestamp;
+
+        gl.activeTexture(gl.TEXTURE0);
+        if (useTextures % 2 == 1) 
+        {
+            //Binds a texture to a target. Target is then used in future calls.
+            //Targets:
+                // TEXTURE_2D           - A two-dimensional texture.
+                // TEXTURE_CUBE_MAP     - A cube-mapped texture.
+                // TEXTURE_3D           - A three-dimensional texture.
+                // TEXTURE_2D_ARRAY     - A two-dimensional array texture.
+            gl.bindTexture(gl.TEXTURE_2D, textureArray[0].textureWebGL);
+            gl.uniform1i(gl.getUniformLocation(program, "texture1"), 0);
+        }
+        else
+        {
+            gl.bindTexture(gl.TEXTURE_2D, textureArray[1].textureWebGL);
+            gl.uniform1i(gl.getUniformLocation(program, "texture2"), 0);
+        }
 	}
 	
 	// Platform
 	gPush();
+
 		gTranslate(cubePosition[0],-4,cubePosition[2]);
 		gPush();
 		{
@@ -288,6 +493,7 @@ function render(timestamp) {
 
     // Flying thing
     gPush();
+        
         dragonRotation[1] = dragonRotation[1] + 35 * dt
         gRotate(dragonRotation[1], 0, 1, 0);
         gTranslate(0, 2, 8);
