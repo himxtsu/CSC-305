@@ -303,6 +303,12 @@ function initTexturesForExample() {
 
     textureArray.push({}) ;
     loadFileTexture(textureArray[textureArray.length-1],"grass.png") ;
+
+    textureArray.push({}) ;
+    loadFileTexture(textureArray[textureArray.length-1],"leaves.jpg") ;
+
+    textureArray.push({}) ;
+    loadFileTexture(textureArray[textureArray.length-1],"eyes.png") ;
 }
 
 // Changes which texture is active in the array of texture examples (see initTexturesForExample)
@@ -319,7 +325,7 @@ window.onload = function init() {
     if ( !gl ) { alert( "WebGL isn't available" ); }
 
     gl.viewport( 0, 0, canvas.width, canvas.height );
-    gl.clearColor( 0.5, 0.5, 1.0, 1.0 );
+    gl.clearColor( 0.53, 0.81, 0.91, 1.0 );
     
     gl.enable(gl.DEPTH_TEST);
 
@@ -375,7 +381,7 @@ window.onload = function init() {
 
 	// Helper function just for this example to load the set of textures
     initTexturesForExample() ;
-
+    
     waitForTextures(textureArray);
 
     render(0);
@@ -461,7 +467,7 @@ function gPush() {
 function render(timestamp) {
     
     gl.clear( gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
-    
+
     if (animFlag) {
         cameraAngle += rotationSpeed * dt;
         cameraAngle %= (2 * Math.PI);
@@ -538,7 +544,8 @@ function render(timestamp) {
 	// Now let's draw a shape animated!
 	// You may be wondering where the texture coordinates are!
 	// We've modified the object.js to add in support for this attribute array!
-	// Platform
+	
+    // Platform
 	gPush();
         gl.bindTexture(gl.TEXTURE_2D, textureArray[5].textureWebGL);
         gl.uniform1i(gl.getUniformLocation(program, "texture1"), 0);
@@ -549,7 +556,7 @@ function render(timestamp) {
 			setColor(vec4(0.9,0.9,0.9,1.0));
 			// cubeRotation[1] = cubeRotation[1] + 30*dt;
 			// gRotate(cubeRotation[1],0,1,0);
-            gScale(40.0, 0.1, 40.0);
+            gScale(25.0, 0.1, 25.0);
 			drawSphere();
 		}
 		gPop();
@@ -864,6 +871,23 @@ function render(timestamp) {
             gPop();            
         }
         gPop();
+
+        //eyes
+
+        gPush();
+        {
+            gl.bindTexture(gl.TEXTURE_2D, textureArray[7].textureWebGL);
+            gl.uniform1i(gl.getUniformLocation(program, "texture1"), 0);
+
+            setColor(vec4(0.0,1.0,0.0,1.0));
+            gTranslate(3.1, 0.1, 0.3);
+            gScale(0.1, 0.1, 0.1);
+            drawCube();
+
+            gTranslate(0, 0, -6);
+            drawCube();
+        }
+        gPop();
     gPop();
 
 
@@ -1005,6 +1029,9 @@ function render(timestamp) {
 
         gPush(); // Leaves
         {
+            gl.bindTexture(gl.TEXTURE_2D, textureArray[6].textureWebGL);
+            gl.uniform1i(gl.getUniformLocation(program, "texture1"), 0);
+
             setColor(vec4(0.0,1.0,1.0,1.0));
             gTranslate(1,-3,3);
             gRotate(-90, 1, 0, 0);
