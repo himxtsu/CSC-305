@@ -380,10 +380,10 @@ window.onload = function init() {
         //console.log(animFlag);       
     };
 
-    document.getElementById("textureToggleButton").onclick = function() {
-        toggleTextures() ;
-        window.requestAnimFrame(render);
-    };
+    // document.getElementById("textureToggleButton").onclick = function() {
+    //     toggleTextures() ;
+    //     window.requestAnimFrame(render);
+    // };
 
 	// Helper function just for this example to load the set of textures
     initTexturesForExample() ;
@@ -1041,68 +1041,59 @@ function render(timestamp) {
 
     gPop();
  
+
+    function draw_tree(x, y, z, size){
+        gPush();
+        {
+            //setting textures
+            gl.bindTexture(gl.TEXTURE_2D, textureArray[4].textureWebGL);
+            gl.uniform1i(gl.getUniformLocation(program, "texture1"), 0);
+
+            gTranslate(x, y, z);
+            gRotate(-90, 1, 0, 0);
+            gScale(size, size, size)
+            gScale(0.2, 0.2, 0.7);
+            drawCylinder();
+
+            gl.bindTexture(gl.TEXTURE_2D, textureArray[6].textureWebGL);
+            gl.uniform1i(gl.getUniformLocation(program, "texture1"), 0);
+
+            gTranslate(0,0,0.5);
+            gScale(1.8,1.8,1);
+            drawCone();
+        }
+        gPop();
+    }
+
     // nature
 
     gPush();
         
+        draw_tree(1, -3.6, 3, 1);
 
-        gPush(); // logs
-        {
-            gl.bindTexture(gl.TEXTURE_2D, textureArray[4].textureWebGL);
-            gl.uniform1i(gl.getUniformLocation(program, "texture1"), 0);
+        draw_tree(4,-3.6,0,2);
 
-            // setColor(vec4(0.0,0.0,1.0,1.0));
-            gTranslate(1,-3.6,3);
-            gRotate(-90, 1, 0, 0);
-            gScale(0.2, 0.2, 0.7);
-            drawCylinder();
+        draw_tree(3,-3.6,-2,2);
 
-            gTranslate(6, 2, 0);
-            drawCylinder();
+        draw_tree(4,-3.6,-6,1);
 
-            gTranslate(8, -7, 0);
-            drawCylinder();
+        draw_tree(0,-3.6,0,2);
 
-            gTranslate(2, 9, 0);
-            drawCylinder();
+        draw_tree(2,-3.6,-7,3)
 
-            gTranslate(-2, 10, 0);
-            drawCylinder();
+        draw_tree(-1,-3.6,-3,1);
 
-            gTranslate(3, 7, 0);
-            drawCylinder();
+        draw_tree(-4,-3.6,-4,3);
 
+        draw_tree(-5,-3.6,0,1);
 
-        }
-        gPop();
+        draw_tree(-4,-3.6,1,2);
 
-        gPush(); // Leaves
-        {
-            gl.bindTexture(gl.TEXTURE_2D, textureArray[6].textureWebGL);
-            gl.uniform1i(gl.getUniformLocation(program, "texture1"), 0);
+        draw_tree(-2,-3.6,5,2);
 
-            // setColor(vec4(0.0,1.0,1.0,1.0));
-            gTranslate(1,-3,3);
-            gRotate(-90, 1, 0, 0);
-            gScale(0.5, 0.5, 1);
-            drawCone();
+        draw_tree(-1,-3.6,4,1);
 
-            gTranslate(2.4, 0.75, 0);
-            drawCone();
-
-            gTranslate(3.2, -2.7, 0);
-            drawCone();
-
-            gTranslate(0.7, 3.5, 0);
-            drawCone();
-
-            gTranslate(-0.8, 4, 0);
-            drawCone();
-
-            gTranslate(1.3, 2.8, 0);
-            drawCone();
-        }
-        gPop();
+        draw_tree(3,-3.6,-2,2);
 
     gPop();
 
