@@ -17,13 +17,13 @@ var bottom = -6.0;
 var lightPosition2 = vec4(100.0, 100.0, 100.0, 1.0 );
 var lightPosition = vec4(0.0, 0.0, 100.0, 1.0 );
 
-var lightAmbient = vec4(0.2, 0.2, 0.2, 1.0 );
-var lightDiffuse = vec4( 1.0, 1.0, 1.0, 1.0 );
-var lightSpecular = vec4( 1.0, 1.0, 1.0, 1.0 );
+var lightAmbient = vec4(1.0, 1.0, 1.0, 1.0 );
+var lightDiffuse = vec4( 0.6, 0.6, 0.6, 1.0 );
+var lightSpecular = vec4( 0.7, 0.7, 0.7, 1.0 );
 
-var materialAmbient = vec4( 1.0, 0.0, 1.0, 1.0 );
-var materialDiffuse = vec4( 1.0, 0.8, 0.0, 1.0 );
-var materialSpecular = vec4( 0.4, 0.4, 0.4, 1.0 );
+var materialAmbient = vec4( 1, 1, 1, 1.0 );
+var materialDiffuse = vec4( 1, 1, 1, 1.0 );
+var materialSpecular = vec4( 1, 1, 1, 1.0 );
 var materialShininess = 30.0;
 
 var ambientColor, diffuseColor, specularColor;
@@ -309,6 +309,12 @@ function initTexturesForExample() {
 
     textureArray.push({}) ;
     loadFileTexture(textureArray[textureArray.length-1],"eyes.png") ;
+
+    textureArray.push({}) ;
+    loadFileTexture(textureArray[textureArray.length-1],"sunrise.jpg") ;
+
+    textureArray.push({}) ;
+    loadFileTexture(textureArray[textureArray.length-1],"cloudy.png") ;
 }
 
 // Changes which texture is active in the array of texture examples (see initTexturesForExample)
@@ -545,6 +551,22 @@ function render(timestamp) {
 	// You may be wondering where the texture coordinates are!
 	// We've modified the object.js to add in support for this attribute array!
 	
+    // Background
+    gPush();
+        gl.bindTexture(gl.TEXTURE_2D, textureArray[8].textureWebGL);
+        gl.uniform1i(gl.getUniformLocation(program, "texture1"), 0);
+
+        gTranslate(0,15,0);
+        gPush();
+        {
+            //setColor(1.0, 0.0, 1.0, 1.0);
+            gRotate(90, 1, 0, 0);
+            gScale(70, 70, 70);
+            drawCylinder();
+        }
+        gPop();
+    gPop();
+
     // Platform
 	gPush();
         gl.bindTexture(gl.TEXTURE_2D, textureArray[5].textureWebGL);
@@ -553,11 +575,11 @@ function render(timestamp) {
 		gTranslate(cubePosition[0],-4,cubePosition[2]);
 		gPush();
 		{
-			setColor(vec4(0.9,0.9,0.9,1.0));
+			//setColor(vec4(0.9,0.9,0.9,1.0));
 			// cubeRotation[1] = cubeRotation[1] + 30*dt;
 			// gRotate(cubeRotation[1],0,1,0);
             gScale(25.0, 0.1, 25.0);
-			drawSphere();
+			drawCube();
 		}
 		gPop();
 	gPop();
@@ -579,7 +601,7 @@ function render(timestamp) {
         // torso
         gPush(); 
         {
-            setColor(vec4(0.0,1.0,0.0,1.0));
+            // setColor(vec4(0.0,1.0,0.0,1.0));
             gScale(1, 0.5, 0.5);
             drawCube();
         }
@@ -610,7 +632,7 @@ function render(timestamp) {
 
                 gPush();
                 {
-                    setColor(vec4(0.0,1.0,0.0,1.0));
+                    // setColor(vec4(0.0,1.0,0.0,1.0));
                     gTranslate(0.7, -0.05, 0.45);
                     gTranslate(0, -0.6, 0); //pivot
                     gScale(0.15, 0.3, 0.15);
@@ -624,7 +646,7 @@ function render(timestamp) {
 
                 gPush();
                 {
-                    setColor(vec4(0.0,1.0,0.0,1.0));
+                    // setColor(vec4(0.0,1.0,0.0,1.0));
                     gTranslate(0.9, -0.6, 0.45);      
                     gRotate(lower,0,0,1);  
                     gTranslate(0, -0.7, 0);
@@ -676,7 +698,7 @@ function render(timestamp) {
 
                 gPush();
                 {
-                    setColor(vec4(0.0,1.0,0.0,1.0));
+                    // setColor(vec4(0.0,1.0,0.0,1.0));
                     gTranslate(-0.6, -0.05, 0.45);
                     gTranslate(0, -0.6, 0); //pivot
                     gScale(0.15, 0.3, 0.15);
@@ -690,7 +712,7 @@ function render(timestamp) {
 
                 gPush();
                 {
-                    setColor(vec4(0.0,1.0,0.0,1.0));
+                    // setColor(vec4(0.0,1.0,0.0,1.0));
                     gTranslate(-0.4, -0.6, 0.45);      
                     gRotate(lower,0,0,1);  
                     gTranslate(0, -0.7, 0);
@@ -727,16 +749,43 @@ function render(timestamp) {
         //tail
         gPush();
         {
-            setColor(vec4(0.0,1.0,0.0,1.0));
+            const minAngleThigh = -20; // Minimum angle (backward)
+            const maxAngleThigh = 20;  // Maximum angle (forward)
+            const amplitude_thigh = (maxAngleThigh - minAngleThigh) / 2; // Amplitude of the sine wave
+            const offset_thigh = (maxAngleThigh + minAngleThigh) / 2;    // Offset to center the range
+            
+            const minAngleCalf = -50; // Minimum angle (backward)
+            const maxAngleCalf = -19;  // Maximum angle (forward)
+            const amplitude_calf = (maxAngleCalf - minAngleCalf) / 2; // Amplitude of the sine wave
+            const offset_calf = (maxAngleCalf + minAngleCalf) / 2;    // Offset to center the range
+
+            //gRotate(legRotation[1],0,1,0);
+            //legRotation[2] = amplitude_thigh * (Math.sin(timestamp * 0.0008 + Math.PI)) + offset_thigh;
+            lower = (amplitude_calf) * (Math.sin(timestamp * 0.0008 + Math.PI)) + (offset_calf);
+            gRotate((amplitude_thigh * (Math.sin(timestamp * 0.0008 + Math.PI)) + offset_thigh),0,0,1);
+
+            // setColor(vec4(0.0,1.0,0.0,1.0));
             gTranslate(-2, 0, 0);
             gScale(1, 0.3, 0.3);
             drawCube();
 
             gPush();
             {
+                gRotate((amplitude_thigh * (Math.sin(timestamp * 0.0008 + Math.PI)) + offset_thigh),0,0,1)
                 gTranslate(-2,0,0);
                 gScale(1,0.7,0.7);
+
                 drawCube();
+
+                gPush();
+                {
+                    gRotate((amplitude_thigh * (Math.sin(timestamp * 0.0008 + Math.PI)) + offset_thigh),0,0,1)
+                    gTranslate(-2,0,0);
+                    gScale(1,0.5,0.5);
+
+                    drawCube();
+                }
+                gPop();
             }
             gPop();
         }
@@ -747,7 +796,7 @@ function render(timestamp) {
         {   
             gPush();
             {
-                setColor(vec4(0.0,1.0,0.0,1.0));
+                // setColor(vec4(0.0,1.0,0.0,1.0));
                 gTranslate(1.7,0,0);
                 gScale(0.7,0.4,0.4);
                 drawCube();
@@ -756,7 +805,7 @@ function render(timestamp) {
 
             gPush();
             {
-                setColor(vec4(0.0,1.0,0.0,1.0));
+                // setColor(vec4(0.0,1.0,0.0,1.0));
                 gTranslate(2.9,0,0);
                 gScale(0.5,0.3,0.3);
                 drawCube();
@@ -789,7 +838,7 @@ function render(timestamp) {
                 
                 gPush();
                 {
-                    setColor(vec4(0.0,1.0,0.0,1.0));
+                    // setColor(vec4(0.0,1.0,0.0,1.0));
                     gTranslate(0.8,0.3,0.65);
                     gScale(0.1,0.1,0.3);
                     drawCube();//shoulder?
@@ -798,7 +847,7 @@ function render(timestamp) {
 
                 gPush();
                 {
-                    setColor(vec4(0.0,1.0,0.0,1.0));
+                    // setColor(vec4(0.0,1.0,0.0,1.0));
                     gTranslate(0.3,0.3,1.7);
                     gScale(0.6, 0.1, 0.8);
                     drawCube();// inner wing
@@ -807,7 +856,7 @@ function render(timestamp) {
 
                 gPush();
                 {
-                    setColor(vec4(0.0,1.0,0.0,1.0));
+                    // setColor(vec4(0.0,1.0,0.0,1.0));
                     gTranslate(0.2,0.3,2.5);
                     gRotate(lower, 1, 0, 0);
                     gTranslate(0,0,1);
@@ -840,7 +889,7 @@ function render(timestamp) {
                 
                 gPush();
                 {
-                    setColor(vec4(0.0,1.0,0.0,1.0));
+                    // setColor(vec4(0.0,1.0,0.0,1.0));
                     gTranslate(0.8,0.3,-0.65);
                     gScale(0.1,0.1,0.3);
                     drawCube();//shoulder?
@@ -849,7 +898,7 @@ function render(timestamp) {
 
                 gPush();
                 {
-                    setColor(vec4(0.0,1.0,0.0,1.0));
+                    // setColor(vec4(0.0,1.0,0.0,1.0));
                     gTranslate(0.3,0.3,-1.7);
                     gScale(0.6, 0.1, 0.8);
                     drawCube();// inner wing
@@ -858,7 +907,7 @@ function render(timestamp) {
 
                 gPush();
                 {
-                    setColor(vec4(0.0,1.0,0.0,1.0));
+                    // setColor(vec4(0.0,1.0,0.0,1.0));
                     gTranslate(0.2,0.3,-2.5);
                     gRotate(lower, 1, 0, 0);
                     gTranslate(0,0,-1);
@@ -879,7 +928,7 @@ function render(timestamp) {
             gl.bindTexture(gl.TEXTURE_2D, textureArray[7].textureWebGL);
             gl.uniform1i(gl.getUniformLocation(program, "texture1"), 0);
 
-            setColor(vec4(0.0,1.0,0.0,1.0));
+            // setColor(vec4(0.0,1.0,0.0,1.0));
             gTranslate(3.1, 0.1, 0.3);
             gScale(0.1, 0.1, 0.1);
             drawCube();
@@ -901,7 +950,7 @@ function render(timestamp) {
         // Middle of Castle
         gPush();
         {
-            setColor(vec4(1.0,0.0,0.0,1.0));
+            // setColor(vec4(1.0,0.0,0.0,1.0));
             gScale(1.5, 2, 1.5);
             drawCube();
         }
@@ -910,7 +959,7 @@ function render(timestamp) {
         // Towers (4x)
         gPush();
         {
-            setColor(vec4(1.0,0.0,0.0,1.0));
+            // setColor(vec4(1.0,0.0,0.0,1.0));
             gTranslate(2, 0.5, 1.75);
             gRotate(90, 1,0,0);
             gScale(1.5, 1.5, 5);
@@ -920,7 +969,7 @@ function render(timestamp) {
 
         gPush();
         {
-            setColor(vec4(1.0,0.0,0.0,1.0));
+            // setColor(vec4(1.0,0.0,0.0,1.0));
             gTranslate(-2, 0.5, 1.75);
             gRotate(90, 1,0,0);
             gScale(1.5, 1.5, 5);
@@ -930,7 +979,7 @@ function render(timestamp) {
 
         gPush();
         {
-            setColor(vec4(1.0,0.0,0.0,1.0));
+            //setColor(vec4(1.0,0.0,0.0,1.0));
             gTranslate(-2, 0.5, -1.75);
             gRotate(90, 1,0,0);
             gScale(1.5, 1.5, 5);
@@ -940,7 +989,7 @@ function render(timestamp) {
         
         gPush();
         {
-            setColor(vec4(1.0,0.0,0.0,1.0));
+            //setColor(vec4(1.0,0.0,0.0,1.0));
             gTranslate(2, 0.5, -1.75);
             gRotate(90, 1,0,0);
             gScale(1.5, 1.5, 5);
@@ -952,7 +1001,7 @@ function render(timestamp) {
 
         gPush();
         {
-            setColor(vec4(1.0,0.0,0.0,1.0));
+            // setColor(vec4(1.0,0.0,0.0,1.0));
             gTranslate(2, 3.5, 1.75);
             gRotate(-90, 1,0,0);
             gScale(1, 1, 1.5);
@@ -962,7 +1011,7 @@ function render(timestamp) {
 
         gPush();
         {
-            setColor(vec4(1.0,0.0,0.0,1.0));
+            // setColor(vec4(1.0,0.0,0.0,1.0));
             gTranslate(-2, 3.5, 1.75);
             gRotate(-90, 1,0,0);
             gScale(1, 1, 1.5);
@@ -972,7 +1021,7 @@ function render(timestamp) {
 
         gPush();
         {
-            setColor(vec4(1.0,0.0,0.0,1.0));
+            // setColor(vec4(1.0,0.0,0.0,1.0));
             gTranslate(-2, 3.5, -1.75);
             gRotate(-90, 1,0,0);
             gScale(1, 1, 1.5);
@@ -982,7 +1031,7 @@ function render(timestamp) {
 
         gPush();
         {
-            setColor(vec4(1.0,0.0,0.0,1.0));
+            // setColor(vec4(1.0,0.0,0.0,1.0));
             gTranslate(2, 3.5, -1.75);
             gRotate(-90, 1,0,0);
             gScale(1, 1, 1.5);
@@ -1002,7 +1051,7 @@ function render(timestamp) {
             gl.bindTexture(gl.TEXTURE_2D, textureArray[4].textureWebGL);
             gl.uniform1i(gl.getUniformLocation(program, "texture1"), 0);
 
-            setColor(vec4(0.0,0.0,1.0,1.0));
+            // setColor(vec4(0.0,0.0,1.0,1.0));
             gTranslate(1,-3.6,3);
             gRotate(-90, 1, 0, 0);
             gScale(0.2, 0.2, 0.7);
@@ -1032,7 +1081,7 @@ function render(timestamp) {
             gl.bindTexture(gl.TEXTURE_2D, textureArray[6].textureWebGL);
             gl.uniform1i(gl.getUniformLocation(program, "texture1"), 0);
 
-            setColor(vec4(0.0,1.0,1.0,1.0));
+            // setColor(vec4(0.0,1.0,1.0,1.0));
             gTranslate(1,-3,3);
             gRotate(-90, 1, 0, 0);
             gScale(0.5, 0.5, 1);
